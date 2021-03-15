@@ -69,7 +69,7 @@ class LightsPage(tk.Frame):
         label.grid(column=0, row=0, sticky='EW', columnspan=2)
 
         i = 0
-        print lightGroups
+        print(lightGroups)
         for lightGroup in lightGroups:
             if 'Group for' in b.get_group(i, 'name'):
                 i += 1
