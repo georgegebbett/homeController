@@ -63,7 +63,7 @@ class LightsPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        self.grid_columnconfigure(0, weight=1)
+
 
         label = tk.Label(self, text="Lighting Control", font=LARGE_FONT)
         label.grid(column=0, row=0, sticky='EW', columnspan=2)
@@ -75,6 +75,7 @@ class LightsPage(tk.Frame):
             button = tk.Button(self, text=b.get_group(i, 'name'),
                                command=lambda: controller.show_frame(StartPage))
             button.grid(column=i%2, row=int(i/2)+1, sticky="NSEW")
+            self.grid_columnconfigure(i%2, weight=1)
             self.grid_rowconfigure(int(i/2)+1, weight=1)
 
             i += 1
