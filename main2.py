@@ -100,18 +100,21 @@ class LightsPage(tk.Frame):
         button2 = tk.Button(self, text="Home",
                             command=lambda: controller.show_frame(StartPage))
         button2.grid(column=0, row=i+1, sticky="NSEW", columnspan=2)
+        self.grid_rowconfigure(i+1, weight=1)
+
 
 class LightsControlPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(1, weight=1)
         self.grid_rowconfigure(2, weight=1)
         self.grid_rowconfigure(3, weight=1)
 
         label = tk.Label(self, text="Home Controller", font=LARGE_FONT)
-        label.grid(column=0, row=0, sticky='EW')
+        label.grid(column=0, row=0, sticky='EW', columnspan = 2)
 
         button = tk.Button(self, text="ON",
                            command=lambda: b.set_group(1,'on', True))
@@ -119,11 +122,19 @@ class LightsControlPage(tk.Frame):
 
         button2 = tk.Button(self, text="OFF",
                             command=lambda: b.set_group(1,'on', False))
-        button2.grid(column=0, row=2, sticky="NSEW")
+        button2.grid(column=1, row=1, sticky="NSEW")
 
         button3 = tk.Button(self, text="Flights On",
                             command=lambda: fairyLights.turnOn())
-        button3.grid(column=0, row=3, sticky="NSEW")
+        button3.grid(column=0, row=2, sticky="NSEW")
+
+        button4 = tk.Button(self, text="Flights Off",
+                            command=lambda: fairyLights.turnOff())
+        button4.grid(column=1, row=2, sticky="NSEW")
+
+        button5 = tk.Button(self, text="Back",
+                            command=lambda: controller.show_frame(LightsPage))
+        button5.grid(column=0, row=3, sticky="NSEW", columnspan=2)
 
 
 class HeatPage(tk.Frame):
