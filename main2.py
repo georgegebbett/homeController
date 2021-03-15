@@ -76,7 +76,7 @@ class LightsPage(tk.Frame):
 
             button = tk.Button(self, text=b.get_group(i, 'name'),
                                command=lambda: controller.show_frame(StartPage))
-            button.grid(column=i%2, row=int(i/2), sticky="NSEW")
+            button.grid(column=i%2, row=int(i/2)+1, sticky="NSEW")
 
             i += 1
 
