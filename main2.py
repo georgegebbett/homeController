@@ -44,7 +44,7 @@ class StartPage(tk.Frame):
 
         button2 = tk.Button(self, text="Heat",
                             command=lambda: controller.show_frame(HeatPage))
-        button.grid(column=0, row=1, sticky="NSEW")
+        button2.grid(column=0, row=1, sticky="NSEW")
 
 
 class LightsPage(tk.Frame):
