@@ -1,6 +1,5 @@
 import tkinter as tk
 
-
 class Application(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
@@ -46,7 +45,7 @@ class SecondWindow(tk.Toplevel):
         for child in self.children:
             self.children[child]["text"] = "On"
 
-menuItems = ["Lights", "Music", "Cameras", "Heat", "Locks", "Alarm"]
+menuItems = [{"name":"Lights"}, "Music", "Cameras", "Heat", "Locks", "Alarm"]
 
 window = tk.Tk()
 
