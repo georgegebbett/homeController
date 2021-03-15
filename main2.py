@@ -35,8 +35,8 @@ class StartPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
         self.grid_rowconfigure(2, weight=1)
 
         label = tk.Label(self, text="Home Controller", font=LARGE_FONT)
@@ -55,32 +55,40 @@ class LightsPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text="Lights Control", font=LARGE_FONT)
-        label.pack(pady=10, padx=10)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(2, weight=1)
 
-        button1 = tk.Button(self, text="Living Room",
-                            command=lambda: controller.show_frame(StartPage))
-        button1.pack()
+        label = tk.Label(self, text="Lighting Control", font=LARGE_FONT)
+        label.grid(column=0, row=0, sticky='EW')
+
+        button = tk.Button(self, text="Living Room",
+                           command=lambda: controller.show_frame(StartPage))
+        button.grid(column=0, row=1, sticky="NSEW")
 
         button2 = tk.Button(self, text="Home",
                             command=lambda: controller.show_frame(StartPage))
-        button2.pack()
+        button2.grid(column=0, row=2, sticky="NSEW")
 
 
 class HeatPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text="Heating Control", font=LARGE_FONT)
-        label.pack(pady=10, padx=10)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(2, weight=1)
 
-        button1 = tk.Button(self, text="Heating off",
-                            command=lambda: controller.show_frame(StartPage))
-        button1.pack()
+        label = tk.Label(self, text="Heating control", font=LARGE_FONT)
+        label.grid(column=0, row=0, sticky='EW')
+
+        button = tk.Button(self, text="Heating on",
+                           command=lambda: controller.show_frame(StartPage))
+        button.grid(column=0, row=1, sticky="NSEW")
 
         button2 = tk.Button(self, text="Home",
                             command=lambda: controller.show_frame(StartPage))
-        button2.pack()
+        button2.grid(column=0, row=2, sticky="NSEW")
 
 
 app = HomeController()
