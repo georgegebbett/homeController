@@ -1,14 +1,27 @@
 import tkinter as tk
-import phue
+import configparser
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+tapoUser = config['tapoCreds']['user']
+tapoPass = config['tapoCreds']['pass']
+
 
 LARGE_FONT = ("Verdana", 12)
 
 from phue import Bridge
 
 b = Bridge('192.168.1.252')
-
 b.connect()
 
+from PyP100 import PyP100
+
+
+
+fairyLights = PyP100.P100("192.168.1.104", tapoUser, tapoPass)
+fairyLights.handshake()
+fairyLights.login()
 lightGroups = b.get_group()
 
 class HomeController(tk.Tk):
@@ -95,6 +108,7 @@ class LightsControlPage(tk.Frame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
         self.grid_rowconfigure(2, weight=1)
+        self.grid_rowconfigure(3, weight=1)
 
         label = tk.Label(self, text="Home Controller", font=LARGE_FONT)
         label.grid(column=0, row=0, sticky='EW')
@@ -106,6 +120,10 @@ class LightsControlPage(tk.Frame):
         button2 = tk.Button(self, text="OFF",
                             command=lambda: b.set_group(1,'on', False))
         button2.grid(column=0, row=2, sticky="NSEW")
+
+        button3 = tk.Button(self, text="Flights On",
+                            command=lambda: fairyLights.turnOn())
+        button3.grid(column=0, row=3, sticky="NSEW")
 
 
 class HeatPage(tk.Frame):
