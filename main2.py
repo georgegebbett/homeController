@@ -71,10 +71,10 @@ class LightsPage(tk.Frame):
         i = 0
         print(lightGroups)
         for lightGroup in lightGroups:
-            if 'Group for' in lightGroup.name:
+            if 'Group for' in lightGroup.values[0]:
                 continue
             else:
-                button = tk.Button(self, text=lightGroup.name,
+                button = tk.Button(self, text=lightGroup.values[0],
                                    command=lambda: controller.show_frame(StartPage))
                 button.grid(column=i%2, row=int(i/2)+1, sticky="NSEW")
                 self.grid_columnconfigure(i%2, weight=1)
