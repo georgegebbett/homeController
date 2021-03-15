@@ -72,6 +72,7 @@ class LightsPage(tk.Frame):
         print(lightGroups)
         for lightGroup in lightGroups:
             print(lightGroup)
+            print(lightGroups[lightGroup]['name'])
             # if 'Group for' in lightGroup.values[0]:
             #     continue
             # else:
