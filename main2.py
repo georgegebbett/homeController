@@ -36,15 +36,15 @@ class StartPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         label = tk.Label(self, text="Home Controller", font=LARGE_FONT)
-        label.pack(pady=10, padx=10)
+        label.grid(column=0, row=0,sticky="EW")
 
         button = tk.Button(self, text="Lights",
                            command=lambda: controller.show_frame(LightsPage))
-        button.pack()
+        button.grid(column=0, row=0, sticky="NSEW")
 
         button2 = tk.Button(self, text="Heat",
                             command=lambda: controller.show_frame(HeatPage))
-        button2.pack()
+        button.grid(column=0, row=1, sticky="NSEW")
 
 
 class LightsPage(tk.Frame):
