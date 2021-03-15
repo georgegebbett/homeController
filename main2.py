@@ -35,8 +35,12 @@ class StartPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(2, weight=1)
+
         label = tk.Label(self, text="Home Controller", font=LARGE_FONT)
-        label.grid(column=0, row=0,sticky="EW")
+        label.grid(column=0, row=0, sticky='EW')
 
         button = tk.Button(self, text="Lights",
                            command=lambda: controller.show_frame(LightsPage))
