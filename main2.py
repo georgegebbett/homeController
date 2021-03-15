@@ -1,7 +1,13 @@
 import tkinter as tk
+import phue
 
 LARGE_FONT = ("Verdana", 12)
 
+from phue import Bridge
+
+b = Bridge('192.168.1.252')
+
+b.connect()
 
 class HomeController(tk.Tk):
 
