@@ -9,7 +9,7 @@ b = Bridge('192.168.1.252')
 
 b.connect()
 
-lightGroups = b.groups()
+lightGroups = b.get_group()
 
 class HomeController(tk.Tk):
 
