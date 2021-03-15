@@ -66,7 +66,7 @@ class LightsPage(tk.Frame):
         self.grid_columnconfigure(0, weight=1)
 
         label = tk.Label(self, text="Lighting Control", font=LARGE_FONT)
-        label.grid(column=0, row=0, sticky='EW')
+        label.grid(column=0, row=0, sticky='EW', columnspan=2)
 
         i = 0
 
