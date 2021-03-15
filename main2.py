@@ -9,6 +9,8 @@ b = Bridge('192.168.1.252')
 
 b.connect()
 
+lightGroups = b.groups()
+
 class HomeController(tk.Tk):
 
     def __init__(self, *args, **kwargs):
@@ -68,13 +70,19 @@ class LightsPage(tk.Frame):
         label = tk.Label(self, text="Lighting Control", font=LARGE_FONT)
         label.grid(column=0, row=0, sticky='EW')
 
-        button = tk.Button(self, text="Living Room",
-                           command=lambda: controller.show_frame(StartPage))
-        button.grid(column=0, row=1, sticky="NSEW")
+        i = 0
 
-        button2 = tk.Button(self, text="Home",
-                            command=lambda: controller.show_frame(StartPage))
-        button2.grid(column=0, row=2, sticky="NSEW")
+        for lightGroup in lightGroups:
+
+            button = tk.Button(self, text=b.get_group(i, 'name'),
+                               command=lambda: controller.show_frame(StartPage))
+            button.grid(column=i%2, row=int(i/2), sticky="NSEW")
+
+            i += 1
+
+        # button2 = tk.Button(self, text="Home",
+        #                     command=lambda: controller.show_frame(StartPage))
+        # button2.grid(column=0, row=2, sticky="NSEW")
 
 
 class HeatPage(tk.Frame):
