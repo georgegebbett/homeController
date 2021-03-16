@@ -1,6 +1,9 @@
 import tkinter as tk
 import configparser
 import json
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
+
 from ast import literal_eval
 
 config = configparser.ConfigParser()
@@ -8,6 +11,16 @@ config.read('config.ini')
 
 tapoUser = config['tapo']['user']
 tapoPass = config['tapo']['pass']
+
+spotifyClientId = config['spotify']['clientId']
+spotifyClientSecret = config['spotify']['clientSecret']
+spotifyRedirectUri = config['spotify']['redirectUri']
+spotifyScope = config['spotify']['scope']
+spotifyUsername = config['spotify']['username']
+
+spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=spotifyClientId, client_secret=spotifyClientSecret,
+                                                    redirect_uri=spotifyRedirectUri, scope=spotifyScope,
+                                                    open_browser=False, username=spotifyUsername))
 
 rooms = literal_eval(config['general']['rooms'])
 
@@ -17,7 +30,7 @@ tapoDevices = literal_eval(config['tapo']['devices'])
 
 print('Rooms:')
 for room in rooms:
-    print(room['id'], room['name'], room['hueGroup'])
+    print(room['id'], room['name'], room['hueGroup'], room['spotifyDevice'])
 
 LARGE_FONT = ("Verdana", 25)
 
@@ -70,7 +83,7 @@ class HomeController(tk.Tk):
 
         self.frames = {}
 
-        for F in (StartPage, RoomsPage, PresetsPage, RoomControlPage, TapoControlPage):
+        for F in (StartPage, RoomsPage, PresetsPage, RoomControlPage, TapoControlPage, MusicControlPage):
             frame = F(container, self)
             self.frames[F] = frame
 
@@ -158,7 +171,7 @@ class RoomControlPage(tk.Frame):
         button3.grid(column=0, row=2, sticky="NSEW")
 
         button4 = tk.Button(self, text="Music", font=LARGE_FONT, wraplength='140',
-                            command=lambda: fairyLights.turnOff())
+                            command=lambda: openMusicControlPage(controller))
         button4.grid(column=1, row=2, sticky="NSEW")
 
         button5 = tk.Button(self, text="Back", font=LARGE_FONT, wraplength='140',
@@ -197,6 +210,10 @@ class TapoControlPage(tk.Frame):
 
     def drawButtons(self, tapoList, controller):
 
+        for widget in self.grid_slaves():
+            if isinstance(widget, tk.Button):
+                widget.grid_forget()
+
         if tapoList:
             i = 0
             for tapo in tapoList:
@@ -210,13 +227,12 @@ class TapoControlPage(tk.Frame):
                 i += 1
 
             button5 = tk.Button(self, text="Back", font=LARGE_FONT, wraplength='140',
-                            command=lambda: controller.show_frame(RoomControlPage))
+                                command=lambda: controller.show_frame(RoomControlPage))
             button5.grid(column=0, row=i + 1, sticky="NSEW", columnspan=2)
         else:
             button5 = tk.Button(self, text="Back", font=LARGE_FONT, wraplength='140',
                                 command=lambda: controller.show_frame(RoomControlPage))
             button5.grid(column=0, row=3, sticky="SEW", columnspan=2)
-
 
     def updateName(self, roomID):
         self.roomToBeControlledName.set(rooms[roomID]['name'])
@@ -230,6 +246,55 @@ class TapoControlPage(tk.Frame):
                 else:
                     print('lights off')
                     self.lightButtonText.set("Lights On")
+
+
+class MusicControlPage(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(2, weight=1)
+        self.grid_rowconfigure(3, weight=1)
+        self.trackName = tk.StringVar()
+        self.playButtonText = tk.StringVar()
+        print(self)
+
+        label = tk.Label(self, textvariable=self.trackName, font=LARGE_FONT)
+        label.grid(column=0, row=0, sticky='EW', columnspan=2)
+
+        button = tk.Button(self, textvariable=self.playButtonText, wraplength='140', font=LARGE_FONT,
+                           command=lambda: musicStateChange())
+        button.grid(column=0, row=1, sticky="NSEW")
+
+        button2 = tk.Button(self, text="Next Song", font=LARGE_FONT, wraplength='140',
+                            command=lambda: nextSong())
+        button2.grid(column=1, row=1, sticky="NSEW")
+
+        button3 = tk.Button(self, text="music", font=LARGE_FONT, wraplength='140',
+                            command=lambda: openTapoControlPage(controller))
+        button3.grid(column=0, row=2, sticky="NSEW")
+
+        button4 = tk.Button(self, text="Music", font=LARGE_FONT, wraplength='140',
+                            command=lambda: fairyLights.turnOff())
+        button4.grid(column=1, row=2, sticky="NSEW")
+
+        button5 = tk.Button(self, text="Back", font=LARGE_FONT, wraplength='140',
+                            command=lambda: controller.show_frame(RoomControlPage))
+        button5.grid(column=0, row=3, sticky="NSEW", columnspan=2)
+
+    def updateName(self, roomID):
+        self.trackName.set(spotify.current_playback()['item']['name'])
+
+
+    def getMusicState(self, spotDev):
+        if spotify.current_playback()['device']['id'] == spotDev:
+            if spotify.current_playback()['is_playing']:
+                print(spotify.current_playback()['item']['name'])
+                self.playButtonText.set("Pause")
+            else:
+                self.playButtonText.set("Play")
 
 
 class PresetsPage(tk.Frame):
@@ -273,6 +338,19 @@ def openTapoControlPage(controller):
     controller.show_frame(TapoControlPage)
     app.frames[TapoControlPage].drawButtons(roomTapos, controller)
 
+
+def openMusicControlPage(controller):
+    print('music controls for', roomToBeControlled)
+    app.frames[MusicControlPage].updateName(roomToBeControlled)
+    print("spotify device in this room:")
+    for room in rooms:
+        if room['id'] == roomToBeControlled:
+            print(room['spotifyDevice'])
+            thisSpotDev = room['spotifyDevice']
+            app.frames[MusicControlPage].getMusicState(thisSpotDev)
+            controller.show_frame(MusicControlPage)
+
+
 def changeTapoState(tapoObj):
     # print(literal_eval(tapoObj.getDeviceInfo())['result']['device_on'])
     if json.loads(tapoObj.getDeviceInfo())['result']['device_on']:
@@ -289,6 +367,31 @@ def lightStateChange():
             else:
                 b.set_group(room['hueGroup'], 'on', True)
     app.frames[RoomControlPage].getLightState(roomToBeControlled)
+
+
+def musicStateChange():
+    for room in rooms:
+        if room['id'] == roomToBeControlled:
+            if spotify.current_playback()['device']['id'] == room['spotifyDevice']:
+                if spotify.current_playback()['is_playing']:
+                    print('pausing')
+                    spotify.pause_playback(room['spotifyDevice'])
+                else:
+                    print('playing')
+                    spotify.start_playback(device_id=room['spotifyDevice'])
+                app.frames[MusicControlPage].getMusicState(room['spotifyDevice'])
+
+def nextSong():
+    for room in rooms:
+        if room['id'] == roomToBeControlled:
+            if spotify.current_playback()['device']['id'] == room['spotifyDevice']:
+                if spotify.current_playback()['is_playing']:
+                    print('next song')
+                    spotify.next_track(room['spotifyDevice'])
+                else:
+                    print('nothing playing')
+                app.frames[MusicControlPage].getMusicState(room['spotifyDevice'])
+                app.frames[MusicControlPage].updateName(roomToBeControlled)
 
 
 app = HomeController()
