@@ -18,6 +18,8 @@ spotifyRedirectUri = config['spotify']['redirectUri']
 spotifyScope = config['spotify']['scope']
 spotifyUsername = config['spotify']['username']
 
+runFullscreen = config.getboolean('general', 'fullscreen')
+
 spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=spotifyClientId, client_secret=spotifyClientSecret,
                                                     redirect_uri=spotifyRedirectUri, scope=spotifyScope,
                                                     open_browser=False, username=spotifyUsername))
@@ -72,8 +74,10 @@ class HomeController(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
         container = tk.Frame(self)
-        # self.attributes('-fullscreen', True)
-        # self.config(cursor="none")
+
+        if runFullscreen:
+            self.attributes('-fullscreen', True)
+            self.config(cursor="none")
 
         container.pack(side="top", fill="both", expand=True)
 
