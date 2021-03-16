@@ -362,17 +362,18 @@ class PlaylistPage(tk.Frame):
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(2, weight=1)
         self.grid_rowconfigure(0, weight=0)
         self.grid_rowconfigure(1, weight=3)
-        self.grid_rowconfigure(2, weight=1)
-        label = tk.Label(self, text='Playlists', font=LARGE_FONT)
-        label.grid(column=0, row=0, sticky='EW', columnspan=2)
+        self.grid_rowconfigure(2, weight=3)
+
 
     def drawButtons(self, controller):
 
         for widget in self.grid_slaves():
             widget.grid_forget()
-
+        label = tk.Label(self, text='Playlists', font=LARGE_FONT)
+        label.grid(column=0, row=0, sticky='EW', columnspan=2)
         listBox = tk.Listbox(self, font=LARGE_FONT)
 
         i = 1
@@ -381,15 +382,23 @@ class PlaylistPage(tk.Frame):
             print(playlist['name'])
             listBox.insert(i, playlist['name'])
             i += 1
-        listBox.grid(column=0, row=1, columnspan=2, sticky='NSEW')
+        listBox.grid(column=0, row=1, columnspan=2, rowspan=2, sticky='NSEW')
 
         button1 = tk.Button(self, text="Back", font=LARGE_FONT, wraplength='140',
                                 command=lambda: controller.show_frame(MusicControlPage))
-        button1.grid(column=0, row=2, sticky="NSEW")
+        button1.grid(column=0, row=3, sticky="NSEW")
 
         button2 = tk.Button(self, text="Play", font=LARGE_FONT, wraplength='140',
                                 command=lambda lb=listBox, c=controller: self.playSong(lb, c))
-        button2.grid(column=1, row=2, sticky="NSEW")
+        button2.grid(column=1, row=3, sticky="NSEW")
+
+        button3 = tk.Button(self, text="▲", font=LARGE_FONT, wraplength='140',
+                                command=lambda lb=listBox: self.scrollBox(lb, True))
+        button3.grid(column=2, row=1, sticky="NSEW")
+
+        button4 = tk.Button(self, text="▼", font=LARGE_FONT, wraplength='140',
+                                command=lambda lb=listBox: self.scrollBox(lb, False))
+        button4.grid(column=2, row=2, sticky="NSEW")
 
     def playSong(self, listB, controller):
         playName = (listB.get(listB.curselection()[0]))
@@ -401,6 +410,12 @@ class PlaylistPage(tk.Frame):
                         spotDev = room['spotifyDevice']
                         spotify.start_playback(device_id=spotDev, context_uri=playlist['uri'])
                         openMusicControlPage(controller)
+
+    def scrollBox(self, listB, directionUp):
+        if directionUp:
+            listB.yview_scroll(-5, 'units')
+        else:
+            listB.yview_scroll(5, 'units')
 
 
 
