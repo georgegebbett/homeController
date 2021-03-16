@@ -305,11 +305,11 @@ class PresetsPage(tk.Frame):
         self.grid_rowconfigure(1, weight=1)
         self.grid_rowconfigure(2, weight=1)
 
-        label = tk.Label(self, text="Heating control", font=LARGE_FONT)
+        label = tk.Label(self, text="Presets", font=LARGE_FONT)
         label.grid(column=0, row=0, sticky='EW')
 
-        button = tk.Button(self, text="Heating on", font=LARGE_FONT,
-                           command=lambda: controller.show_frame(StartPage))
+        button = tk.Button(self, text="set up spotify", font=LARGE_FONT,
+                           command=lambda: print(spotify.current_playback()))
         button.grid(column=0, row=1, sticky="NSEW")
 
         button2 = tk.Button(self, text="Home", font=LARGE_FONT,
