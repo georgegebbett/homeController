@@ -201,7 +201,7 @@ class TapoControlPage(tk.Frame):
             i = 0
             for tapo in tapoList:
                 button = tk.Button(self, text=getattr(tapo, 'name'), font=LARGE_FONT, wraplength='140',
-                                   command=lambda: changeTapoState(tapo))
+                                   command=lambda tapoDevice=tapo: changeTapoState(tapoDevice))
                 setattr(button, 'id', room['id'])
                 button.grid(column=i % 2, row=int(i / 2) + 1, sticky="NSEW")
                 self.grid_columnconfigure(i % 2, weight=1)
