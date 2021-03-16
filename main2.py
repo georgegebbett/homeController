@@ -18,7 +18,6 @@ print('Rooms:')
 for room in rooms:
     print(room['id'], room['name'], room['hueGroup'])
 
-
 LARGE_FONT = ("Verdana", 25)
 
 from phue import Bridge
@@ -50,6 +49,7 @@ lightGroups = b.get_group()
 
 roomToBeControlled = 0
 
+
 class HomeController(tk.Tk):
 
     def __init__(self, *args, **kwargs):
@@ -66,14 +66,14 @@ class HomeController(tk.Tk):
 
         self.frames = {}
 
-        for F in (StartPage, RoomsPage, PresetsPage, LightsControlPage):
+        for F in (StartPage, RoomsPage, PresetsPage, RoomControlPage):
             frame = F(container, self)
-
             self.frames[F] = frame
 
             frame.grid(row=0, column=0, sticky="nsew")
 
         self.show_frame(StartPage)
+        print(self.frames)
 
     def show_frame(self, cont):
         frame = self.frames[cont]
@@ -105,7 +105,6 @@ class RoomsPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
-
         label = tk.Label(self, text="Rooms", font=LARGE_FONT)
         label.grid(column=0, row=0, sticky='EW', columnspan=2)
 
@@ -114,19 +113,19 @@ class RoomsPage(tk.Frame):
             button = tk.Button(self, text=room['name'], font=LARGE_FONT, wraplength='140',
                                command=lambda roomId=room['id']: openLightControlPage(roomId, controller))
             setattr(button, 'id', room['id'])
-            button.grid(column=i%2, row=int(i/2)+1, sticky="NSEW")
-            self.grid_columnconfigure(i%2, weight=1)
-            self.grid_rowconfigure(int(i/2)+1, weight=1)
+            button.grid(column=i % 2, row=int(i / 2) + 1, sticky="NSEW")
+            self.grid_columnconfigure(i % 2, weight=1)
+            self.grid_rowconfigure(int(i / 2) + 1, weight=1)
 
             i += 1
 
         button2 = tk.Button(self, text="Home", font=LARGE_FONT,
                             command=lambda: controller.show_frame(StartPage))
-        button2.grid(column=0, row=i+1, sticky="NSEW", columnspan=2)
-        self.grid_rowconfigure(i+1, weight=1)
+        button2.grid(column=0, row=i + 1, sticky="NSEW", columnspan=2)
+        self.grid_rowconfigure(i + 1, weight=1)
 
 
-class LightsControlPage(tk.Frame):
+class RoomControlPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -135,16 +134,18 @@ class LightsControlPage(tk.Frame):
         self.grid_rowconfigure(1, weight=1)
         self.grid_rowconfigure(2, weight=1)
         self.grid_rowconfigure(3, weight=1)
+        self.roomToBeControlledName = tk.StringVar()
+        print(self)
 
-        label = tk.Label(self, text="Home Controller", font=LARGE_FONT)
-        label.grid(column=0, row=0, sticky='EW', columnspan = 2)
+        label = tk.Label(self, textvariable=self.roomToBeControlledName, font=LARGE_FONT)
+        label.grid(column=0, row=0, sticky='EW', columnspan=2)
 
-        button = tk.Button(self, text="ON", font=LARGE_FONT,
-                           command=lambda: b.set_group(1,'on', True))
+        button = tk.Button(self, text="Lights ON", font=LARGE_FONT,
+                           command=lambda: lightStateChange(True))
         button.grid(column=0, row=1, sticky="NSEW")
 
-        button2 = tk.Button(self, text="OFF", font=LARGE_FONT,
-                            command=lambda: b.set_group(1,'on', False))
+        button2 = tk.Button(self, text="Lights OFF", font=LARGE_FONT,
+                            command=lambda: lightStateChange(False))
         button2.grid(column=1, row=1, sticky="NSEW")
 
         button3 = tk.Button(self, text="Flights On", font=LARGE_FONT,
@@ -158,6 +159,10 @@ class LightsControlPage(tk.Frame):
         button5 = tk.Button(self, text="Back", font=LARGE_FONT,
                             command=lambda: controller.show_frame(RoomsPage))
         button5.grid(column=0, row=3, sticky="NSEW", columnspan=2)
+
+    def updateName(self, roomID):
+        self.roomToBeControlledName.set(rooms[roomID]['name'])
+
 
 
 class PresetsPage(tk.Frame):
@@ -180,13 +185,21 @@ class PresetsPage(tk.Frame):
         button2.grid(column=0, row=2, sticky="NSEW")
 
 
-
 def openLightControlPage(room, controller):
     global roomToBeControlled
     roomToBeControlled = room
     print('light controls for', room)
-    controller.show_frame(LightsControlPage)
+    app.frames[RoomControlPage].updateName(roomToBeControlled)
+    controller.show_frame(RoomControlPage)
 
+
+def lightStateChange(onBool):
+    for room in rooms:
+        if room['id'] == roomToBeControlled:
+            if onBool:
+                b.set_group(room['hueGroup'], 'on', True)
+            else:
+                b.set_group(room['hueGroup'], 'on', False)
 
 
 app = HomeController()
