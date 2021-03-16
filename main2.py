@@ -88,7 +88,7 @@ class HomeController(tk.Tk):
 
         self.frames = {}
 
-        for F in (StartPage, RoomsPage, PresetsPage, RoomControlPage, TapoControlPage, MusicControlPage, MusicTransferPage, PlaylistPage):
+        for F in (StartPage, RoomsPage, PresetsPage, RoomControlPage, TapoControlPage, MusicControlPage, MusicTransferPage, PlaylistPage, SceneControlPage):
             frame = F(container, self)
             self.frames[F] = frame
 
@@ -168,7 +168,7 @@ class RoomControlPage(tk.Frame):
         button.grid(column=0, row=1, sticky="NSEW")
 
         button2 = tk.Button(self, text="Scenes", font=LARGE_FONT, wraplength='140',
-                            command=lambda: lightStateChange(False))
+                            command=lambda: openSceneControlPage(controller))
         button2.grid(column=1, row=1, sticky="NSEW")
 
         button3 = tk.Button(self, text="Smart Plugs", font=LARGE_FONT, wraplength='140',
@@ -422,6 +422,64 @@ class PlaylistPage(tk.Frame):
         else:
             listB.yview_scroll(5, 'units')
 
+class SceneControlPage(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.roomToBeControlledName = tk.StringVar()
+        self.lightButtonText = tk.StringVar()
+        print(self)
+
+        label = tk.Label(self, textvariable=self.roomToBeControlledName, font=LARGE_FONT)
+        label.grid(column=0, row=0, sticky='EW', columnspan=2)
+
+    def drawButtons(self, sceneList, controller):
+
+        for widget in self.grid_slaves():
+            if isinstance(widget, tk.Button):
+                widget.grid_forget()
+
+        if sceneList:
+            i = 0
+            for room in rooms:
+                if room['id'] == roomToBeControlled:
+                    hueRoom = room['hueGroup']
+            for scene in sceneList:
+                button = tk.Button(self, text=scene['name'], font=LARGE_FONT, wraplength='140',
+                                   command=lambda rId=hueRoom, sId=scene['id']: b.activate_scene(group_id=rId, scene_id=sId))
+                setattr(button, 'id', room['id'])
+                button.grid(column=i % 2, row=int(i / 2) + 1, sticky="NSEW")
+                self.grid_columnconfigure(i % 2, weight=1)
+                self.grid_rowconfigure(int(i / 2) + 1, weight=1)
+
+                i += 1
+
+            button5 = tk.Button(self, text="Back", font=LARGE_FONT, wraplength='140',
+                                command=lambda: controller.show_frame(RoomControlPage))
+            self.grid_rowconfigure(i + 1, weight=1)
+            button5.grid(column=0, row=i + 1, sticky="NSEW", columnspan=2)
+
+        else:
+            button5 = tk.Button(self, text="Back", font=LARGE_FONT, wraplength='140',
+                                command=lambda: controller.show_frame(RoomControlPage))
+            button5.grid(column=0, row=1, sticky="NSEW", columnspan=2)
+            self.grid_rowconfigure(0, weight=1)
+            self.grid_rowconfigure(1, weight=5)
+            self.grid_columnconfigure(0, weight=1)
+            self.grid_columnconfigure(1, weight=1)
+
+    def updateName(self, roomID):
+        self.roomToBeControlledName.set(rooms[roomID]['name'])
+
+    def getLightState(self, roomID):
+        for room in rooms:
+            if room['id'] == roomID:
+                if b.get_group(room['hueGroup'], 'on'):
+                    print('lights on')
+                    self.lightButtonText.set("Lights Off")
+                else:
+                    print('lights off')
+                    self.lightButtonText.set("Lights On")
 
 
 
@@ -470,6 +528,28 @@ def openTapoControlPage(controller):
             roomTapos.append(device)
     controller.show_frame(TapoControlPage)
     app.frames[TapoControlPage].drawButtons(roomTapos, controller)
+
+def openSceneControlPage(controller):
+    print('scene controls for', roomToBeControlled)
+    app.frames[SceneControlPage].updateName(roomToBeControlled)
+    print("scenes in this room:")
+    roomSceneList = []
+    for room in rooms:
+        if room['id'] == roomToBeControlled:
+            hueRoom = room['hueGroup']
+            print('hue room', hueRoom)
+            scenes = b.get_scene()
+            # print(scenes)
+            for scene in scenes.keys():
+                # print(scenes[scene])
+                if 'group' in scenes[scene].keys():
+                    # print(scenes[scene]['group'])
+                    if scenes[scene]['group'] == str(hueRoom):
+                        # print(scenes[scene]['name'])
+                        roomSceneList.append({'name': scenes[scene]['name'], 'id': scene})
+    print(roomSceneList)
+    controller.show_frame(SceneControlPage)
+    app.frames[SceneControlPage].drawButtons(roomSceneList, controller)
 
 
 def openMusicControlPage(controller):
