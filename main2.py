@@ -8,7 +8,7 @@ tapoUser = config['tapoCreds']['user']
 tapoPass = config['tapoCreds']['pass']
 
 
-LARGE_FONT = ("Verdana", 12)
+LARGE_FONT = ("Verdana", 25)
 
 from phue import Bridge
 
@@ -29,6 +29,7 @@ class HomeController(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
         container = tk.Frame(self)
+        self.attributes('-fullscreen', True)
 
         container.pack(side="top", fill="both", expand=True)
 
@@ -38,7 +39,7 @@ class HomeController(tk.Tk):
 
         self.frames = {}
 
-        for F in (StartPage, LightsPage, HeatPage, LightsControlPage):
+        for F in (StartPage, LightsPage, PresetsPage, LightsControlPage):
             frame = F(container, self)
 
             self.frames[F] = frame
@@ -63,12 +64,12 @@ class StartPage(tk.Frame):
         label = tk.Label(self, text="Home Controller", font=LARGE_FONT)
         label.grid(column=0, row=0, sticky='EW')
 
-        button = tk.Button(self, text="Lights",
+        button = tk.Button(self, text="Lights", font=LARGE_FONT,
                            command=lambda: controller.show_frame(LightsPage))
         button.grid(column=0, row=1, sticky="NSEW")
 
-        button2 = tk.Button(self, text="Heat",
-                            command=lambda: controller.show_frame(HeatPage))
+        button2 = tk.Button(self, text="Presets",
+                            command=lambda: controller.show_frame(PresetsPage))
         button2.grid(column=0, row=2, sticky="NSEW")
 
 
@@ -137,7 +138,7 @@ class LightsControlPage(tk.Frame):
         button5.grid(column=0, row=3, sticky="NSEW", columnspan=2)
 
 
-class HeatPage(tk.Frame):
+class PresetsPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -155,6 +156,8 @@ class HeatPage(tk.Frame):
         button2 = tk.Button(self, text="Home",
                             command=lambda: controller.show_frame(StartPage))
         button2.grid(column=0, row=2, sticky="NSEW")
+
+
 
 
 app = HomeController()
