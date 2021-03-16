@@ -200,11 +200,6 @@ class TapoControlPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=1)
-        self.grid_rowconfigure(1, weight=1)
-        self.grid_rowconfigure(2, weight=1)
-        self.grid_rowconfigure(3, weight=1)
         self.roomToBeControlledName = tk.StringVar()
         self.lightButtonText = tk.StringVar()
         print(self)
@@ -232,7 +227,9 @@ class TapoControlPage(tk.Frame):
 
             button5 = tk.Button(self, text="Back", font=LARGE_FONT, wraplength='140',
                                 command=lambda: controller.show_frame(RoomControlPage))
+            self.grid_rowconfigure(i + 1, weight=1)
             button5.grid(column=0, row=i + 1, sticky="NSEW", columnspan=2)
+
         else:
             button5 = tk.Button(self, text="Back", font=LARGE_FONT, wraplength='140',
                                 command=lambda: controller.show_frame(RoomControlPage))
