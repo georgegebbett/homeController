@@ -36,6 +36,7 @@ class HomeController(tk.Tk):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
         self.geometry('320x480')
+        self.config(cursor="none")
 
         self.frames = {}
 
