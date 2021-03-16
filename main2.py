@@ -371,8 +371,7 @@ class PlaylistPage(tk.Frame):
     def drawButtons(self, controller):
 
         for widget in self.grid_slaves():
-            if isinstance(widget, tk.Button):
-                widget.grid_forget()(self)
+            widget.grid_forget()
 
         listBox = tk.Listbox(self, font=LARGE_FONT)
 
@@ -389,8 +388,21 @@ class PlaylistPage(tk.Frame):
         button1.grid(column=0, row=2, sticky="NSEW")
 
         button2 = tk.Button(self, text="Play", font=LARGE_FONT, wraplength='140',
-                                command=lambda selection=listBox.curselection(): print(selection))
+                                command=lambda lb=listBox, c=controller: self.playSong(lb, c))
         button2.grid(column=1, row=2, sticky="NSEW")
+
+    def playSong(self, listB, controller):
+        playName = (listB.get(listB.curselection()[0]))
+
+        for playlist in spotify.current_user_playlists(limit=50)['items']:
+            if playlist['name'] == playName:
+                for room in rooms:
+                    if room['id'] == roomToBeControlled:
+                        spotDev = room['spotifyDevice']
+                        spotify.start_playback(device_id=spotDev, context_uri=playlist['uri'])
+                        openMusicControlPage(controller)
+
+
 
 
 class PresetsPage(tk.Frame):
