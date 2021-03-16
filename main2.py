@@ -360,12 +360,12 @@ class PlaylistPage(tk.Frame):
         self.lightButtonText = tk.StringVar()
         print(self)
 
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(0, weight=2)
+        self.grid_columnconfigure(1, weight=2)
         self.grid_columnconfigure(2, weight=1)
         self.grid_rowconfigure(0, weight=0)
         self.grid_rowconfigure(1, weight=3)
-        self.grid_rowconfigure(2, weight=3)
+        self.grid_rowconfigure(2, weight=4)
 
 
     def drawButtons(self, controller):
@@ -373,7 +373,7 @@ class PlaylistPage(tk.Frame):
         for widget in self.grid_slaves():
             widget.grid_forget()
         label = tk.Label(self, text='Playlists', font=LARGE_FONT)
-        label.grid(column=0, row=0, sticky='EW', columnspan=2)
+        label.grid(column=0, row=0, sticky='EW', columnspan=3)
         listBox = tk.Listbox(self, font=LARGE_FONT)
 
         i = 1
