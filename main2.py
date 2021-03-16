@@ -234,7 +234,11 @@ class TapoControlPage(tk.Frame):
         else:
             button5 = tk.Button(self, text="Back", font=LARGE_FONT, wraplength='140',
                                 command=lambda: controller.show_frame(RoomControlPage))
-            button5.grid(column=0, row=3, sticky="SEW", columnspan=2)
+            button5.grid(column=0, row=1, sticky="NSEW", columnspan=2)
+            self.grid_rowconfigure(0, weight=1)
+            self.grid_rowconfigure(1, weight=5)
+            self.grid_columnconfigure(0, weight=1)
+            self.grid_columnconfigure(1, weight=1)
 
     def updateName(self, roomID):
         self.roomToBeControlledName.set(rooms[roomID]['name'])
