@@ -34,6 +34,7 @@ print('Rooms:')
 for room in rooms:
     print(room['id'], room['name'], room['hueGroup'], room['spotifyDevice'])
 
+
 LARGE_FONT = ("Verdana", 25)
 
 from phue import Bridge
@@ -87,7 +88,7 @@ class HomeController(tk.Tk):
 
         self.frames = {}
 
-        for F in (StartPage, RoomsPage, PresetsPage, RoomControlPage, TapoControlPage, MusicControlPage):
+        for F in (StartPage, RoomsPage, PresetsPage, RoomControlPage, TapoControlPage, MusicControlPage, MusicTransferPage, PlaylistPage):
             frame = F(container, self)
             self.frames[F] = frame
 
@@ -116,7 +117,7 @@ class StartPage(tk.Frame):
                            command=lambda: controller.show_frame(RoomsPage))
         button.grid(column=0, row=1, sticky="NSEW")
 
-        button2 = tk.Button(self, text="Presets", font=LARGE_FONT,
+        button2 = tk.Button(self, text="Utilities", font=LARGE_FONT,
                             command=lambda: controller.show_frame(PresetsPage))
         button2.grid(column=0, row=2, sticky="NSEW")
 
@@ -273,12 +274,12 @@ class MusicControlPage(tk.Frame):
                             command=lambda: nextSong())
         button2.grid(column=1, row=1, sticky="NSEW")
 
-        button3 = tk.Button(self, text="music", font=LARGE_FONT, wraplength='140',
-                            command=lambda: openTapoControlPage(controller))
+        button3 = tk.Button(self, text="Transfer", font=LARGE_FONT, wraplength='140',
+                            command=lambda: openMusicTransferPage(controller))
         button3.grid(column=0, row=2, sticky="NSEW")
 
-        button4 = tk.Button(self, text="Music", font=LARGE_FONT, wraplength='140',
-                            command=lambda: fairyLights.turnOff())
+        button4 = tk.Button(self, text="Playlists", font=LARGE_FONT, wraplength='140',
+                            command=lambda: openPlaylistPage(controller))
         button4.grid(column=1, row=2, sticky="NSEW")
 
         button5 = tk.Button(self, text="Back", font=LARGE_FONT, wraplength='140',
@@ -286,16 +287,110 @@ class MusicControlPage(tk.Frame):
         button5.grid(column=0, row=3, sticky="NSEW", columnspan=2)
 
     def updateName(self, roomID):
-        self.trackName.set(spotify.current_playback()['item']['name'])
-
+        print('updating name')
+        for room in rooms:
+            if room['id'] == roomID:
+                spotDev = room['spotifyDevice']
+                print('device is', spotDev)
+                print(spotify.current_playback())
+                if spotify.current_playback():
+                    if spotify.current_playback()['device']['id'] == spotDev:
+                        self.trackName.set(spotify.current_playback()['item']['name'])
+                    else:
+                        self.trackName.set("Nothing playing")
+                else:
+                    self.trackName.set("Nothing playing")
 
     def getMusicState(self, spotDev):
-        if spotify.current_playback()['device']['id'] == spotDev:
-            if spotify.current_playback()['is_playing']:
-                print(spotify.current_playback()['item']['name'])
-                self.playButtonText.set("Pause")
-            else:
-                self.playButtonText.set("Play")
+        if spotify.current_playback():
+            if spotify.current_playback()['device']['id'] == spotDev:
+                if spotify.current_playback()['is_playing']:
+                    print(spotify.current_playback()['item']['name'])
+                    self.playButtonText.set("Pause")
+                else:
+                    self.playButtonText.set("Play")
+        else:
+            self.playButtonText.set("Play")
+
+class MusicTransferPage(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.roomToBeControlledName = tk.StringVar()
+        self.lightButtonText = tk.StringVar()
+        print(self)
+
+        label = tk.Label(self, text='Transfer to:', font=LARGE_FONT)
+        label.grid(column=0, row=0, sticky='EW', columnspan=2)
+
+    def drawButtons(self, controller):
+
+        for widget in self.grid_slaves():
+            if isinstance(widget, tk.Button):
+                widget.grid_forget()
+
+        if rooms:
+            i = 0
+            for room in rooms:
+                if room['spotifyDevice']:
+                    button = tk.Button(self, text=room['name'], font=LARGE_FONT, wraplength='140',
+                                       command=lambda transferTo=room['spotifyDevice']: transferMusic(transferTo, controller))
+                    button.grid(column=i % 2, row=int(i / 2) + 1, sticky="NSEW")
+                    self.grid_columnconfigure(i % 2, weight=1)
+                    self.grid_rowconfigure(int(i / 2) + 1, weight=1)
+
+                    i += 1
+
+            button5 = tk.Button(self, text="Back", font=LARGE_FONT, wraplength='140',
+                                command=lambda: controller.show_frame(MusicControlPage))
+            self.grid_rowconfigure(i + 1, weight=1)
+            button5.grid(column=0, row=i + 1, sticky="NSEW", columnspan=2)
+
+        else:
+            button5 = tk.Button(self, text="Back", font=LARGE_FONT, wraplength='140',
+                                command=lambda: controller.show_frame(MusicControlPage))
+            button5.grid(column=0, row=3, sticky="SEW", columnspan=2)
+
+
+class PlaylistPage(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.roomToBeControlledName = tk.StringVar()
+        self.lightButtonText = tk.StringVar()
+        print(self)
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=0)
+        self.grid_rowconfigure(1, weight=3)
+        self.grid_rowconfigure(2, weight=1)
+        label = tk.Label(self, text='Playlists', font=LARGE_FONT)
+        label.grid(column=0, row=0, sticky='EW', columnspan=2)
+
+    def drawButtons(self, controller):
+
+        for widget in self.grid_slaves():
+            if isinstance(widget, tk.Button):
+                widget.grid_forget()(self)
+
+        listBox = tk.Listbox(self, font=LARGE_FONT)
+
+        i = 1
+
+        for playlist in spotify.current_user_playlists(limit=50)['items']:
+            print(playlist['name'])
+            listBox.insert(i, playlist['name'])
+            i += 1
+        listBox.grid(column=0, row=1, columnspan=2, sticky='NSEW')
+
+        button1 = tk.Button(self, text="Back", font=LARGE_FONT, wraplength='140',
+                                command=lambda: controller.show_frame(MusicControlPage))
+        button1.grid(column=0, row=2, sticky="NSEW")
+
+        button2 = tk.Button(self, text="Play", font=LARGE_FONT, wraplength='140',
+                                command=lambda selection=listBox.curselection(): print(selection))
+        button2.grid(column=1, row=2, sticky="NSEW")
 
 
 class PresetsPage(tk.Frame):
@@ -303,19 +398,24 @@ class PresetsPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(1, weight=1)
         self.grid_rowconfigure(2, weight=1)
 
-        label = tk.Label(self, text="Presets", font=LARGE_FONT)
-        label.grid(column=0, row=0, sticky='EW')
+        label = tk.Label(self, text="Utilities", font=LARGE_FONT)
+        label.grid(column=0, row=0, columnspan=2, sticky='EW')
 
-        button = tk.Button(self, text="set up spotify", font=LARGE_FONT,
+        button = tk.Button(self, text="Set up Spotify", font=LARGE_FONT,
                            command=lambda: print(spotify.current_playback()))
-        button.grid(column=0, row=1, sticky="NSEW")
+        button.grid(column=0, row=1, columnspan=2, sticky="NSEW")
 
         button2 = tk.Button(self, text="Home", font=LARGE_FONT,
                             command=lambda: controller.show_frame(StartPage))
         button2.grid(column=0, row=2, sticky="NSEW")
+
+        button3 = tk.Button(self, text="Quit", font=LARGE_FONT,
+                            command=lambda: app.destroy())
+        button3.grid(column=1, row=2, sticky="NSEW")
 
 
 def openRoomControlPage(room, controller):
@@ -351,6 +451,15 @@ def openMusicControlPage(controller):
             app.frames[MusicControlPage].getMusicState(thisSpotDev)
             controller.show_frame(MusicControlPage)
 
+def openMusicTransferPage(controller):
+    print('music transfer for', roomToBeControlled)
+    app.frames[MusicTransferPage].drawButtons(controller)
+    controller.show_frame(MusicTransferPage)
+
+def openPlaylistPage(controller):
+    print('playlists')
+    app.frames[PlaylistPage].drawButtons(controller)
+    controller.show_frame(PlaylistPage)
 
 def changeTapoState(tapoObj):
     # print(literal_eval(tapoObj.getDeviceInfo())['result']['device_on'])
@@ -373,14 +482,21 @@ def lightStateChange():
 def musicStateChange():
     for room in rooms:
         if room['id'] == roomToBeControlled:
-            if spotify.current_playback()['device']['id'] == room['spotifyDevice']:
-                if spotify.current_playback()['is_playing']:
-                    print('pausing')
-                    spotify.pause_playback(room['spotifyDevice'])
-                else:
-                    print('playing')
-                    spotify.start_playback(device_id=room['spotifyDevice'])
-                app.frames[MusicControlPage].getMusicState(room['spotifyDevice'])
+            if spotify.current_playback():
+                if spotify.current_playback()['device']['id'] == room['spotifyDevice']:
+                    if spotify.current_playback()['is_playing']:
+                        print('pausing')
+                        spotify.pause_playback(room['spotifyDevice'])
+                    else:
+                        print('playing')
+                        spotify.start_playback(device_id=room['spotifyDevice'])
+            else:
+                print('playing')
+                spotify.start_playback(device_id=room['spotifyDevice'])
+
+            app.frames[MusicControlPage].getMusicState(room['spotifyDevice'])
+            app.frames[MusicControlPage].updateName(roomToBeControlled)
+
 
 def nextSong():
     for room in rooms:
@@ -393,6 +509,11 @@ def nextSong():
                     print('nothing playing')
                 app.frames[MusicControlPage].getMusicState(room['spotifyDevice'])
                 app.frames[MusicControlPage].updateName(roomToBeControlled)
+
+
+def transferMusic(deviceToTransferTo, controller):
+    spotify.transfer_playback(deviceToTransferTo)
+    controller.show_frame(RoomsPage)
 
 
 app = HomeController()
