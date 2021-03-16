@@ -364,8 +364,9 @@ class PlaylistPage(tk.Frame):
         self.grid_columnconfigure(1, weight=2)
         self.grid_columnconfigure(2, weight=1)
         self.grid_rowconfigure(0, weight=0)
-        self.grid_rowconfigure(1, weight=3)
+        self.grid_rowconfigure(1, weight=4)
         self.grid_rowconfigure(2, weight=4)
+        self.grid_rowconfigure(3, weight=2)
 
 
     def drawButtons(self, controller):
