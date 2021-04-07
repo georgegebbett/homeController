@@ -466,10 +466,11 @@ class SceneControlPage(tk.Frame):
             if len(sceneList2) == 5:
                 button6 = tk.Button(self, text="Next", font=LARGE_FONT, wraplength='140',
                                     command=lambda: self.drawButtons(sceneList, controller, firstScene+6))
+                button6.grid(column=1, row=int(i / 2) + 1, sticky="NSEW")
             else:
                 button6 = tk.Button(self, text="Next", font=LARGE_FONT, wraplength='140',
                                     command=lambda: self.drawButtons(sceneList, controller, 0))
-            button6.grid(column=1, row=int(i / 2) + 1, sticky="NSEW")
+                button6.grid(column=0, row=int(i / 2) + 2, columnspan=2, sticky="NSEW")
 
         else:
             button5 = tk.Button(self, text="Back", font=LARGE_FONT, wraplength='140',
