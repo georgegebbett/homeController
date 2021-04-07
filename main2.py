@@ -436,20 +436,19 @@ class SceneControlPage(tk.Frame):
         label = tk.Label(self, textvariable=self.roomToBeControlledName, font=LARGE_FONT)
         label.grid(column=0, row=0, sticky='EW', columnspan=2)
 
-    def drawButtons(self, sceneList, controller):
+    def drawButtons(self, sceneList, controller, firstScene):
 
         for widget in self.grid_slaves():
             if isinstance(widget, tk.Button):
                 widget.grid_forget()
-
         if sceneList:
             if len(sceneList) > 6:
-                sceneList = sceneList[:5]
+                sceneList2 = sceneList[firstScene:firstScene+5]
             i = 0
             for room in rooms:
                 if room['id'] == roomToBeControlled:
                     hueRoom = room['hueGroup']
-            for scene in sceneList:
+            for scene in sceneList2:
                 button = tk.Button(self, text=scene['name'], font=LARGE_FONT, wraplength='140',
                                    command=lambda rId=hueRoom, sId=scene['id']: b.activate_scene(group_id=rId,
                                                                                                  scene_id=sId))
@@ -462,8 +461,11 @@ class SceneControlPage(tk.Frame):
 
             button5 = tk.Button(self, text="Back", font=LARGE_FONT, wraplength='140',
                                 command=lambda: controller.show_frame(RoomControlPage))
+            button6 = tk.Button(self, text="Next", font=LARGE_FONT, wraplength='140',
+                                command=lambda: self.drawButtons(sceneList, controller, firstScene+6))
             self.grid_rowconfigure(i + 1, weight=1)
             button5.grid(column=0, row=i + 1, sticky="NSEW", columnspan=2)
+            button6.grid(column=1, row=i, sticky="NSEW")
 
         else:
             button5 = tk.Button(self, text="Back", font=LARGE_FONT, wraplength='140',
@@ -559,7 +561,7 @@ def openSceneControlPage(controller):
                         roomSceneList.append({'name': scenes[scene]['name'], 'id': scene})
     print(roomSceneList)
     controller.show_frame(SceneControlPage)
-    app.frames[SceneControlPage].drawButtons(roomSceneList, controller)
+    app.frames[SceneControlPage].drawButtons(roomSceneList, controller, 0)
 
 
 def openMusicControlPage(controller):
