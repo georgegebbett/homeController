@@ -498,7 +498,7 @@ class UtilitiesPage(tk.Frame):
         label = tk.Label(self, text="Utilities", font=LARGE_FONT)
         label.grid(column=0, row=0, columnspan=2, sticky='EW')
 
-        button = tk.Button(self, text="Set up Spotify", font=LARGE_FONT,
+        button = tk.Button(self, text="Set up \nSpotify", font=LARGE_FONT,
                            command=lambda: print(spotify.current_playback()))
         button.grid(column=0, row=1, sticky="NSEW")
 
