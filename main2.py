@@ -3,47 +3,52 @@ import configparser
 import json
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-
 from ast import literal_eval
+from phue import Bridge
+from PyP100 import PyP100
 
+# open and read the config file
 config = configparser.ConfigParser()
 config.read('config.ini')
 
+# set Tapo variables
 tapoUser = config['tapo']['user']
 tapoPass = config['tapo']['pass']
+tapoDevices = literal_eval(config['tapo']['devices'])
 
+# set Spotify variables
 spotifyClientId = config['spotify']['clientId']
 spotifyClientSecret = config['spotify']['clientSecret']
 spotifyRedirectUri = config['spotify']['redirectUri']
 spotifyScope = config['spotify']['scope']
 spotifyUsername = config['spotify']['username']
 
-runFullscreen = config.getboolean('general', 'fullscreen')
-
-spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=spotifyClientId, client_secret=spotifyClientSecret,
-                                                    redirect_uri=spotifyRedirectUri, scope=spotifyScope,
-                                                    open_browser=False, username=spotifyUsername))
-
-rooms = literal_eval(config['general']['rooms'])
-
+# set Hue variables
 hueBridgeIp = config['hue']['bridgeIp']
 
-tapoDevices = literal_eval(config['tapo']['devices'])
+# set other misc variables
+runFullscreen = config.getboolean('general', 'fullscreen')
+rooms = literal_eval(config['general']['rooms'])
+LARGE_FONT = ("Verdana", 25)
+roomToBeControlled = 0
 
+# create Spotify client
+spotifyAuthManager = SpotifyOAuth(client_id=spotifyClientId, client_secret=spotifyClientSecret,
+                                  redirect_uri=spotifyRedirectUri, scope=spotifyScope,
+                                  open_browser=False, username=spotifyUsername)
+spotify = spotipy.Spotify(auth_manager=spotifyAuthManager)
+
+# create and connect to Hue bridge object
+b = Bridge(hueBridgeIp)
+b.connect()
+lightGroups = b.get_group()
+
+# make sure we have the full list of rooms ready to go
 print('Rooms:')
 for room in rooms:
     print(room['id'], room['name'], room['hueGroup'], room['spotifyDevice'])
 
-
-LARGE_FONT = ("Verdana", 25)
-
-from phue import Bridge
-
-b = Bridge(hueBridgeIp)
-b.connect()
-
-from PyP100 import PyP100
-
+# gather up Tapo devices and connect to each one
 tapoDeviceObjects = []
 
 for device in tapoDevices:
@@ -61,14 +66,6 @@ for device in tapoDeviceObjects:
           getattr(device, 'ipAddress'))
     device.handshake()
     device.login()
-
-fairyLights = PyP100.P100("192.168.1.104", tapoUser, tapoPass)
-fairyLights.handshake()
-fairyLights.login()
-lightGroups = b.get_group()
-
-roomToBeControlled = 0
-
 
 class HomeController(tk.Tk):
 
@@ -88,7 +85,9 @@ class HomeController(tk.Tk):
 
         self.frames = {}
 
-        for F in (StartPage, RoomsPage, PresetsPage, RoomControlPage, TapoControlPage, MusicControlPage, MusicTransferPage, PlaylistPage, SceneControlPage):
+        for F in (
+                StartPage, RoomsPage, UtilitiesPage, RoomControlPage, TapoControlPage, MusicControlPage, MusicTransferPage,
+                PlaylistPage, SceneControlPage):
             frame = F(container, self)
             self.frames[F] = frame
 
@@ -118,7 +117,7 @@ class StartPage(tk.Frame):
         button.grid(column=0, row=1, sticky="NSEW")
 
         button2 = tk.Button(self, text="Utilities", font=LARGE_FONT,
-                            command=lambda: controller.show_frame(PresetsPage))
+                            command=lambda: controller.show_frame(UtilitiesPage))
         button2.grid(column=0, row=2, sticky="NSEW")
 
 
@@ -316,6 +315,7 @@ class MusicControlPage(tk.Frame):
         else:
             self.playButtonText.set("Play")
 
+
 class MusicTransferPage(tk.Frame):
 
     def __init__(self, parent, controller):
@@ -338,7 +338,8 @@ class MusicTransferPage(tk.Frame):
             for room in rooms:
                 if room['spotifyDevice']:
                     button = tk.Button(self, text=room['name'], font=LARGE_FONT, wraplength='140',
-                                       command=lambda transferTo=room['spotifyDevice']: transferMusic(transferTo, controller))
+                                       command=lambda transferTo=room['spotifyDevice']: transferMusic(transferTo,
+                                                                                                      controller))
                     button.grid(column=i % 2, row=int(i / 2) + 1, sticky="NSEW")
                     self.grid_columnconfigure(i % 2, weight=1)
                     self.grid_rowconfigure(int(i / 2) + 1, weight=1)
@@ -372,7 +373,6 @@ class PlaylistPage(tk.Frame):
         self.grid_rowconfigure(2, weight=4)
         self.grid_rowconfigure(3, weight=2)
 
-
     def drawButtons(self, controller):
 
         for widget in self.grid_slaves():
@@ -390,19 +390,19 @@ class PlaylistPage(tk.Frame):
         listBox.grid(column=0, row=1, columnspan=2, rowspan=2, sticky='NSEW')
 
         button1 = tk.Button(self, text="Back", font=LARGE_FONT, wraplength='140',
-                                command=lambda: controller.show_frame(MusicControlPage))
+                            command=lambda: controller.show_frame(MusicControlPage))
         button1.grid(column=0, row=3, sticky="NSEW")
 
         button2 = tk.Button(self, text="Play", font=LARGE_FONT, wraplength='140',
-                                command=lambda lb=listBox, c=controller: self.playSong(lb, c))
+                            command=lambda lb=listBox, c=controller: self.playSong(lb, c))
         button2.grid(column=1, row=3, sticky="NSEW")
 
         button3 = tk.Button(self, text="▲", font=LARGE_FONT, wraplength='140',
-                                command=lambda lb=listBox: self.scrollBox(lb, True))
+                            command=lambda lb=listBox: self.scrollBox(lb, True))
         button3.grid(column=2, row=1, sticky="NSEW")
 
         button4 = tk.Button(self, text="▼", font=LARGE_FONT, wraplength='140',
-                                command=lambda lb=listBox: self.scrollBox(lb, False))
+                            command=lambda lb=listBox: self.scrollBox(lb, False))
         button4.grid(column=2, row=2, sticky="NSEW")
 
     def playSong(self, listB, controller):
@@ -421,6 +421,7 @@ class PlaylistPage(tk.Frame):
             listB.yview_scroll(-5, 'units')
         else:
             listB.yview_scroll(5, 'units')
+
 
 class SceneControlPage(tk.Frame):
 
@@ -446,7 +447,8 @@ class SceneControlPage(tk.Frame):
                     hueRoom = room['hueGroup']
             for scene in sceneList:
                 button = tk.Button(self, text=scene['name'], font=LARGE_FONT, wraplength='140',
-                                   command=lambda rId=hueRoom, sId=scene['id']: b.activate_scene(group_id=rId, scene_id=sId))
+                                   command=lambda rId=hueRoom, sId=scene['id']: b.activate_scene(group_id=rId,
+                                                                                                 scene_id=sId))
                 setattr(button, 'id', room['id'])
                 button.grid(column=i % 2, row=int(i / 2) + 1, sticky="NSEW")
                 self.grid_columnconfigure(i % 2, weight=1)
@@ -482,8 +484,7 @@ class SceneControlPage(tk.Frame):
                     self.lightButtonText.set("Lights On")
 
 
-
-class PresetsPage(tk.Frame):
+class UtilitiesPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -529,6 +530,7 @@ def openTapoControlPage(controller):
     controller.show_frame(TapoControlPage)
     app.frames[TapoControlPage].drawButtons(roomTapos, controller)
 
+
 def openSceneControlPage(controller):
     print('scene controls for', roomToBeControlled)
     app.frames[SceneControlPage].updateName(roomToBeControlled)
@@ -563,15 +565,18 @@ def openMusicControlPage(controller):
             app.frames[MusicControlPage].getMusicState(thisSpotDev)
             controller.show_frame(MusicControlPage)
 
+
 def openMusicTransferPage(controller):
     print('music transfer for', roomToBeControlled)
     app.frames[MusicTransferPage].drawButtons(controller)
     controller.show_frame(MusicTransferPage)
 
+
 def openPlaylistPage(controller):
     print('playlists')
     app.frames[PlaylistPage].drawButtons(controller)
     controller.show_frame(PlaylistPage)
+
 
 def changeTapoState(tapoObj):
     # print(literal_eval(tapoObj.getDeviceInfo())['result']['device_on'])
