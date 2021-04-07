@@ -2,10 +2,12 @@ import tkinter as tk
 import configparser
 import json
 import spotipy
+import os
 from spotipy.oauth2 import SpotifyOAuth
 from ast import literal_eval
 from phue import Bridge
 from PyP100 import PyP100
+
 
 # open and read the config file
 config = configparser.ConfigParser()
@@ -498,7 +500,11 @@ class UtilitiesPage(tk.Frame):
 
         button = tk.Button(self, text="Set up Spotify", font=LARGE_FONT,
                            command=lambda: print(spotify.current_playback()))
-        button.grid(column=0, row=1, columnspan=2, sticky="NSEW")
+        button.grid(column=0, row=1, sticky="NSEW")
+
+        button4 = tk.Button(self, text="Update", font=LARGE_FONT,
+                           command=lambda: os.system("./update.sh"))
+        button4.grid(column=1, row=1, sticky="NSEW")
 
         button2 = tk.Button(self, text="Home", font=LARGE_FONT,
                             command=lambda: controller.show_frame(StartPage))
