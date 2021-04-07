@@ -443,6 +443,8 @@ class SceneControlPage(tk.Frame):
                 widget.grid_forget()
 
         if sceneList:
+            if len(sceneList) > 6:
+                sceneList = sceneList[:5]
             i = 0
             for room in rooms:
                 if room['id'] == roomToBeControlled:
