@@ -465,7 +465,7 @@ class SceneControlPage(tk.Frame):
                                 command=lambda: self.drawButtons(sceneList, controller, firstScene+6))
             self.grid_rowconfigure(i + 1, weight=1)
             button5.grid(column=0, row=i + 1, sticky="NSEW", columnspan=2)
-            button6.grid(column=1, row=i - 1, sticky="NSEW")
+            button6.grid(column=1, int(i / 2) + 1, sticky="NSEW")
 
         else:
             button5 = tk.Button(self, text="Back", font=LARGE_FONT, wraplength='140',
