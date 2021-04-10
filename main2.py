@@ -11,7 +11,7 @@ from PyP100 import PyP100
 
 # open and read the config file
 config = configparser.ConfigParser()
-config.read('config.ini')
+config.read('/home/pi/homeController/config.ini')
 
 # set Tapo variables
 tapoUser = config['tapo']['user']
