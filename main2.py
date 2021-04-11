@@ -11,7 +11,7 @@ from PyP100 import PyP100
 
 # open and read the config file
 config = configparser.ConfigParser()
-config.read('/home/pi/homeController/config.ini')
+config.read('config.ini')
 
 # set Tapo variables
 tapoUser = config['tapo']['user']
@@ -45,29 +45,7 @@ b = Bridge(hueBridgeIp)
 b.connect()
 lightGroups = b.get_group()
 
-# make sure we have the full list of rooms ready to go
-print('Rooms:')
-for room in rooms:
-    print(room['id'], room['name'], room['hueGroup'], room['spotifyDevice'])
-
-# gather up Tapo devices and connect to each one
 tapoDeviceObjects = []
-
-for device in tapoDevices:
-    devObject = PyP100.P100(device['ip'], tapoUser, tapoPass)
-    setattr(devObject, 'room', device['room'])
-    setattr(devObject, 'name', device['name'])
-    tapoDeviceObjects.append(devObject)
-
-print('Tapo devices:')
-
-for device in tapoDeviceObjects:
-    print(device,
-          getattr(device, 'name'),
-          getattr(device, 'room'),
-          getattr(device, 'ipAddress'))
-    device.handshake()
-    device.login()
 
 class HomeController(tk.Tk):
 
@@ -88,19 +66,62 @@ class HomeController(tk.Tk):
         self.frames = {}
 
         for F in (
-                StartPage, RoomsPage, UtilitiesPage, RoomControlPage, TapoControlPage, MusicControlPage, MusicTransferPage,
+                SplashScreen, StartPage, RoomsPage, UtilitiesPage, RoomControlPage, TapoControlPage, MusicControlPage, MusicTransferPage,
                 PlaylistPage, SceneControlPage):
             frame = F(container, self)
             self.frames[F] = frame
 
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.show_frame(StartPage)
+        self.show_frame(SplashScreen)
+
+        global tapoDeviceObjects
+        # make sure we have the full list of rooms ready to go
+        print('Rooms:')
+        for room in rooms:
+            print(room['id'], room['name'], room['hueGroup'], room['spotifyDevice'])
+
+        # gather up Tapo devices and connect to each one
+
+        for device in tapoDevices:
+            devObject = PyP100.P100(device['ip'], tapoUser, tapoPass)
+            setattr(devObject, 'room', device['room'])
+            setattr(devObject, 'name', device['name'])
+            tapoDeviceObjects.append(devObject)
+
+        print('Tapo devices:')
+
+        for device in tapoDeviceObjects:
+            print(device,
+                  getattr(device, 'name'),
+                  getattr(device, 'room'),
+                  getattr(device, 'ipAddress'))
+            device.handshake()
+            device.login()
+
         print(self.frames)
+
+        self.show_frame(StartPage)
 
     def show_frame(self, cont):
         frame = self.frames[cont]
         frame.tkraise()
+
+class SplashScreen(tk.Frame):
+
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        # self.grid_rowconfigure(2, weight=1)
+
+        label = tk.Label(self, text="Home Controller\nLoading...", font=LARGE_FONT)
+        label.grid(column=0, row=0, sticky='NSEW')
+
+
+
+        # controller.show_frame(StartPage)
+
 
 
 class StartPage(tk.Frame):
@@ -121,6 +142,7 @@ class StartPage(tk.Frame):
         button2 = tk.Button(self, text="Utilities", font=LARGE_FONT,
                             command=lambda: controller.show_frame(UtilitiesPage))
         button2.grid(column=0, row=2, sticky="NSEW")
+
 
 
 class RoomsPage(tk.Frame):
@@ -646,6 +668,9 @@ def nextSong():
 def transferMusic(deviceToTransferTo, controller):
     spotify.transfer_playback(deviceToTransferTo)
     controller.show_frame(RoomsPage)
+
+
+
 
 
 app = HomeController()
